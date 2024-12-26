@@ -10,12 +10,9 @@ pd.set_option('display.width', None)
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_experimental_option('detach', True)
 driver = webdriver.Chrome(options=chrome_options)
-driver.get('https://www.nba.com/')
+driver.get('https://www.nba.com/stats/players')
 
 driver.maximize_window()
-
-stats = driver.find_element(By.LINK_TEXT,'Stats')
-stats.click()
 
 try:
     time.sleep(2)
@@ -76,3 +73,6 @@ df = pd.DataFrame(list_of_lists_body, columns=list_head)
 df.to_csv("top_50_nba_players_stats.csv",index=False)
 
 print(df)
+
+time.sleep(1)
+driver.quit()
