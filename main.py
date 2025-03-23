@@ -1,8 +1,10 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-import pandas as pd
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
+import pandas as pd
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
@@ -14,23 +16,22 @@ driver.get('https://www.nba.com/stats/players')
 
 driver.maximize_window()
 
+wait = WebDriverWait(driver, 10)
+
 try:
-    time.sleep(2)
-    decline = driver.find_element(By.CSS_SELECTOR,'#onetrust-reject-all-handler')
+    decline = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#onetrust-reject-all-handler')))
     decline.click()
 except:
     pass
 
-time.sleep(2)
-all_players_stats = driver.find_element(By.LINK_TEXT,'See All Player Stats')
+time.sleep(1)
+all_players_stats = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'See All Player Stats')))
 all_players_stats.click()
 
-time.sleep(2)
-per_game = driver.find_element(By.XPATH,'//*[@id="__next"]/div[2]/div[2]/div[3]/section[1]/div/div/div[3]/label/div/select/option[2]')
+per_game = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="__next"]/div[2]/div[2]/div[3]/section[1]/div/div/div[3]/label/div/select/option[2]')))
 per_game.click()
 
-time.sleep(2)
-body = driver.find_elements(By.CSS_SELECTOR,'.Crom_body__UYOcU tr')
+body = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '.Crom_body__UYOcU tr')))
 
 class_to_remove = 'Crom_stickySecondColumn__29Dwf'
 player_names = []
@@ -45,34 +46,22 @@ for row in body:
             """, td)
             break
 
-head = driver.find_elements(By.CSS_SELECTOR,'.Crom_headers__mzI_m th')
+head = driver.find_elements(By.CSS_SELECTOR, '.Crom_headers__mzI_m th')
 visible_head = [th for th in head if th.is_displayed()]
 
-stringg = ''
 list_of_lists_body = []
-listt = []
-for i in body:
-    stringg = i.text
-    listt = stringg.split(' ')
-    listt = listt[1:]
+for row in body:
+    listt = row.text.split(' ')[1:]
     list_of_lists_body.append(listt)
 
-list_head = []
-for i in visible_head:
-    stringg = i.text
-    list_head.append(stringg)
-
-list_head = list_head[1:]
+list_head = [th.text for th in visible_head][1:]
 
 for i in range(len(list_of_lists_body)):
     list_of_lists_body[i].insert(0, player_names[i])
 
-
 df = pd.DataFrame(list_of_lists_body, columns=list_head)
 
-df.to_csv("top_50_nba_players_stats.csv",index=False)
-
+df.to_csv("top_50_nba_players_stats.csv", index=False)
 print(df)
 
-time.sleep(1)
 driver.quit()
